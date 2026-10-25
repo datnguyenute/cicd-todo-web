@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 
-type Todo = { id: number; title: string; done: boolean };
+type Todo = { id: number; title: string; done: boolean; important: boolean };
 type Health = { env: string; version: string; db: string };
 
 // NEXT_PUBLIC_* được THAY THẲNG vào code JS lúc `next build`.
@@ -48,7 +48,20 @@ export default function Home() {
   }
 
   async function toggle(id: number) {
-    await call(`/todos/${id}/toggle`, { method: 'PATCH' });
+    try {
+      await call(`/todos/${id}/toggle`, { method: 'PATCH' });
+    } catch (e) {
+      setError(`Cannot toggle todo ${id}: ${e}`);
+    }
+    load();
+  }
+
+  async function toggleImportant(id: number) {
+    try {
+      await call(`/todos/${id}/important`, { method: 'PATCH' });
+    } catch (e) {
+      setError(`Cannot toggle important status for todo ${id}: ${e}`);
+    }
     load();
   }
 
@@ -80,6 +93,9 @@ export default function Home() {
               <input type="checkbox" checked={t.done} onChange={() => toggle(t.id)} />{' '}
               <span style={{ textDecoration: t.done ? 'line-through' : 'none' }}>{t.title}</span>
             </label>
+            <button onClick={() => toggleImportant(t.id)} aria-label='Mark important' title='Mark important' style={{ marginLeft: 8, fontSize: 16, lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer' }}>
+              {t.important ? '★' : '☆'}
+            </button>
           </li>
         ))}
       </ul>
